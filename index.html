@@ -106,6 +106,9 @@ select:focus,#g-ans:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .foot p{margin:0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .mail{font-family:var(--mono);color:var(--fg);user-select:all}
 .btn.small{padding:4px 12px;font-size:.82rem}
+.sec{margin:6px 0 -2px;font-weight:600;font-size:.9rem}
+.sec small{font-weight:400;color:var(--muted)}
+table.narrow{min-width:0}
 .empty{color:var(--muted);text-align:center;padding:32px 0}
 #splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;text-align:center;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
@@ -199,6 +202,7 @@ select:focus,#g-ans:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 </footer>
 </div>
 
+<script src="verbes.js"></script>
 <script>
 const MAIL="sofienebm@live.fr";
 const P=["ana","nta","nti","howa","hiya","7na","ntouma","homa"];
@@ -611,6 +615,14 @@ E("espérons","netmennaw");
 E("tu ne sais pas ce que tu m'as fait !","ma dart fiya !","Féminin : ma darti fiya. Pluriel : ma dartou fiya.");
 E("avant que","9bel ma");
 
+/* VERBES : le fichier verbes.js (modifiable avec l'appli admin) remplace la liste intégrée */
+if(Array.isArray(window.VERBES)&&window.VERBES.length){
+  for(let i=D.length-1;i>=0;i--)if(D[i].t==="verbe")D.splice(i,1);
+  window.VERBES.forEach(v=>D.push(Object.assign({},v,{t:"verbe"})));
+}
+const KAN=["kont","kont","konti","kan","kanet","konna","kontou","kanou"];
+const imp=pr=>pr.map((x,i)=>!x||x==="—"?"—":KAN[i]+" "+x);
+
 /* CONVERTISSEUR : nombre en chiffres → darija */
 const U=["sifr","wa7ed","zouj","tlata","reb3a","khamsa","setta","seb3a","tmenya","tes3a","3achra","7dach","tnach","tlettach","rba3tach","khamstach","settach","sba3tach","tmentach","tsa3tach"];
 const T=["","","3achrin","tlatin","reb3in","khamsin","settin","seb3in","tmanin","tes3in"];
@@ -648,6 +660,7 @@ D.forEach(e=>{
   const parts=[e.fr,e.dz,e.s,e.p,e.m,e.f,e.v,e.a&&typeof e.a==="string"?e.a:"",e.n];
   if(e.w){parts.push(...e.w.pr,...e.w.pa)}
   if(e.a&&typeof e.a==="object"){parts.push(...e.a.pr,...e.a.pa)}
+  if(e.pact)parts.push(...e.pact);if(e.ppas)parts.push(...e.ppas);
   e.k=norm(parts.join(" "));
 });
 const TYPES=["tout","verbe","nom","adjectif","mot outil","expression","nombre","lettre"];
@@ -676,6 +689,18 @@ function body(e){
     });
     h+=`</tbody></table></div>`;
     if(!two)h+=`<p class="note">Même forme dans l'Ouest et à Alger.</p>`;
+    if(!e.noimp){
+      const iw=imp(e.w.pr),ia=two?imp(e.a.pr):null;
+      h+=`<p class="sec">Imparfait <small>(kan + présent : j'écrivais, je faisais…)</small></p><div class="tbl"><table class="narrow"><thead><tr><th></th><th class="w">${two?"Ouest":"Imparfait"}</th>${two?'<th class="a sep">Alger / Est</th>':""}</tr></thead><tbody>`;
+      P.forEach((p,i)=>{h+=`<tr><td>${p} <small>(${PFR[i]})</small></td><td>${esc(iw[i])}</td>${two?`<td class="sep">${esc(ia[i])}</td>`:""}</tr>`});
+      h+=`</tbody></table></div>`;
+    }
+    if(e.pact||e.ppas||e.pdoute){
+      const f=a=>a?`${esc(a[0])} · ${esc(a[1])} · ${esc(a[2])}`:"—";
+      h+=`<p class="sec">Participes <small>(masculin · féminin · pluriel)</small></p><dl class="forms"><dt>Actif</dt><dd>${f(e.pact)}</dd><dt>Passif</dt><dd>${f(e.ppas)}</dd></dl>`;
+      if(!e.ppas&&e.pact)h+=`<p class="note">Pas de participe passif : le verbe n'a pas de complément d'objet.</p>`;
+      if(e.pdoute)h+=`<p class="note"><span class="doubt">À vérifier :</span> participes incertains ou peu employés.</p>`;
+    }
   }
   if(e.d)h+=`<p class="note"><span class="doubt">À vérifier :</span> forme peu employée, à confirmer.</p>`;
   if(e.n)h+=`<p class="note">${esc(e.n)}</p>`;
