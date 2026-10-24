@@ -1381,6 +1381,7 @@ window.DONNEES = {
    "t": "mot outil",
    "fr": "aussi",
    "v": "tani",
+   "a": "zeda",
    "n": "Aussi thani. ana tani = moi aussi."
   },
   {
